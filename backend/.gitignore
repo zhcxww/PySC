@@ -1,0 +1,11 @@
+.DS_Store
+/venv
+__pycache__/
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.pyc
+*.log
