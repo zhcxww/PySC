@@ -1,7 +1,7 @@
 from flask import render_template
 from flask import request
 from app import app
-from app.Generate_sc import generate_sc
+from app.generate_sc import generate_sc
 import io
 import base64
 import json
@@ -50,9 +50,9 @@ def get_tree():
         res = sc_tree.find_one({"pkg":pkg,"time":time})
         return {"pkg":res["pkg"],"time":res["time"],"tree":res["tree"],"package_number":res["package_number"],"project_number":res["project_number"],"layer":res["layer"],"degree":res["degree"],"max_layer":res["max_layer"]}
     else:
-        supplychain=generate_sc(pkg) 
+        supplychain=generate_sc(pkg,time) 
         supplychain.get_parents()
-        supplychain.get_node_main_parent_and_layer(time)
+        supplychain.get_node_main_parent_and_layer()
         tree=supplychain.generate_tree()
         layer_number=supplychain.get_layer_number()
         degree=supplychain.get_degree()

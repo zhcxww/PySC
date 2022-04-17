@@ -38,7 +38,23 @@
       ></div>
     </el-aside>
     <el-main>
-      <div id="tree" style="width: 100%; height: 100%"></div>
+      <el-carousel style="height: 100%; " :autoplay="false">
+        <el-carousel-item style="height: 100%" >
+          <div
+            style="
+              overflow-y: scroll;
+              overflow-x: hidden;
+              height: 100%;
+              width: 100%;
+            "
+          >
+            <div id="tree" style="height: 100%; width: 100%"></div>
+          </div>
+        </el-carousel-item>
+
+
+        <el-carousel-item  style="height: 100%" >2</el-carousel-item>
+      </el-carousel>
     </el-main>
   </el-container>
 </template>
@@ -49,7 +65,7 @@ export default {
   data() {
     return {
       pkg: "",
-      time: "1648121399",
+      time: "1585670399",
       tableData: [],
       project_number: 0,
       package_number: 0,
@@ -153,7 +169,6 @@ export default {
           } else {
             container.style.height = data_length * 10 + "px";
             myChart.resize();
-           
           }
           console.log(degree_data);
           this.draw_degree(degree_data);
@@ -222,7 +237,7 @@ export default {
           {
             type: "log",
             name: "In-degree",
-            logBase:10,
+            logBase: 10,
             min: 1,
           },
         ],
@@ -266,4 +281,8 @@ export default {
 .el-col {
   border-radius: 4px;
 }
+.el-carousel /deep/ .el-carousel__container {
+  height: 100%;
+}
+
 </style>
