@@ -76,7 +76,7 @@ class sc:
     def save_edges(self,edge):
         for i in self.node_lst:
             for ch in i.children:
-                edge.insert_one({"from":ch[0],"to":i.name,"timestamp":ch[1],"pkg":self.head.name})
+                edge.insert_one({"from":ch[0],"to":i.name,"timestamp":ch[1],"pkg":self.head.name,"layer":self.node_lst[self.node_index[ch[0]]].layer})
     #@profile
     def _tree(self,tree):
         node=self.node_lst[self.node_index[tree["name"]]]
@@ -162,11 +162,12 @@ def generate_sc(pkg,timestamp):
     pkg_sc.node_index[root.name]=0
     
 
-    def append_c(children_lst,project): 
+    def append_c(layer,children_lst,project): 
         for c in children_lst:
             if pkg_sc.node_index.get(c[0],-1) == -1: # 子节点尚不在sc中
                 x=sc_node(c[0],pkg_repo,pkg_import)
-                x.import_time=c[1] #初始化 导入时间 
+                x.import_time=c[1] #初始化 导入时
+                x.layer=layer+1 
                 pkg_sc.node_lst.append(x)
                 pkg_sc.node_index[c[0]]=len(pkg_sc.node_lst)-1
             else:
@@ -174,8 +175,9 @@ def generate_sc(pkg,timestamp):
                     pass
                 else:
                     pkg_sc.node_lst[pkg_sc.node_index[c[0]]].import_time = c[1] #更新该子节点导入时间
+                    pkg_sc.node_lst[pkg_sc.node_index[c[0]]].layer = layer+1
                     pkg_sc.node_lst[pkg_sc.node_index[c[0]]].get_children(dependencies,pkg_repo,project,timestamp)
-                    append_c(pkg_sc.node_lst[pkg_sc.node_index[c[0]]].children,project) # 递归更新 所有的子孙节点
+                    append_c(layer+1,pkg_sc.node_lst[pkg_sc.node_index[c[0]]].children,project) # 递归更新 所有的子孙节点
     
      #查找 包之间的依赖边
     if edge.find_one({"pkg":pkg}):
@@ -191,14 +193,14 @@ def generate_sc(pkg,timestamp):
                 x.children.append((e["from"],e["timestamp"]))
 
         for node in pkg_sc.node_lst:
-            append_c(node.children,pkg_sc.project)
+            append_c(node.layer,node.children,pkg_sc.project)
         for node in pkg_sc.node_lst:
             node.calculate_indegree(dependencies,timestamp,pkg_sc.project)
 
     else:
         for node in pkg_sc.node_lst:
             node.get_children(dependencies,pkg_repo,pkg_sc.project,timestamp)
-            append_c(node.children,pkg_sc.project)    
+            append_c(node.layer,node.children,pkg_sc.project)    
         pkg_sc.save_edges(edge)
 
     new_dict={}

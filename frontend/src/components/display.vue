@@ -38,8 +38,8 @@
       ></div>
     </el-aside>
     <el-main>
-      <el-carousel style="height: 100%; " :autoplay="false">
-        <el-carousel-item style="height: 100%" >
+      <el-carousel style="height: 100%" :autoplay="false">
+        <el-carousel-item style="height: 100%">
           <div
             style="
               overflow-y: scroll;
@@ -52,8 +52,20 @@
           </div>
         </el-carousel-item>
 
+        <el-carousel-item style="height: 100%">
+          <div style="height: 100%; width: 100%">
+            <div id="evolution" style="height: 100%; width: 100%"></div></div
+        ></el-carousel-item>
 
-        <el-carousel-item  style="height: 100%" >2</el-carousel-item>
+        <el-carousel-item style="height: 100%">
+          <div style="height: 100%; width: 100%">
+            <div id="b_d" style="height: 100%; width: 100%"></div></div
+        ></el-carousel-item>
+
+        <el-carousel-item style="height: 100%">
+          <div style="height: 100%; width: 100%">
+            <div id="in_pr" style="height: 100%; width: 100%"></div></div
+        ></el-carousel-item>
       </el-carousel>
     </el-main>
   </el-container>
@@ -108,6 +120,9 @@ export default {
       });
       var data_length;
       var degree_data;
+      var evolution;
+      var between_degree;
+      var indegree_pr;
       this.axios
         .post("/api/gettree", { pkg: this.pkg, time: this.time })
         .then((res) => {
@@ -117,6 +132,9 @@ export default {
           this.package_number = res.data.package_number;
           this.tableData = res.data.layer;
           degree_data = res.data;
+          evolution = res.data.evolution;
+          between_degree = res.data.between_degree;
+          indegree_pr = res.data.indegree_pagerank;
           // data.children.forEach(function (datum, index) {
           //     index % 100 != 0 && (datum.collapsed = true);
           // });
@@ -125,11 +143,16 @@ export default {
           myChart.clear();
           myChart.setOption(
             (option = {
+              title:{text:"Tree Structure of the Software Supply Chain"},
               tooltip: {
                 trigger: "item",
                 triggerOn: "mousemove",
               },
-
+              toolbox: {
+                feature: {
+                  saveAsImage: {},
+                },
+              },
               series: [
                 {
                   type: "tree",
@@ -163,15 +186,19 @@ export default {
             })
           );
 
-          if (data_length * 10 < 600) {
+          if (data_length * 15 < 600) {
             container.style.height = 600 + "px";
             myChart.resize();
           } else {
-            container.style.height = data_length * 10 + "px";
+            container.style.height = data_length * 15 + "px";
             myChart.resize();
           }
-          console.log(degree_data);
+          // console.log(degree_data);
           this.draw_degree(degree_data);
+          this.draw_evolution(evolution);
+          this.draw_b_d(between_degree);
+          console.log(indegree_pr);
+          this.draw_in_pr(indegree_pr);
         })
         .catch((error) => {
           console.log(error);
@@ -182,6 +209,7 @@ export default {
     draw_degree(degree_data) {
       var chartDom = document.getElementById("degree");
       var myChart = this.$echarts.init(chartDom);
+      myChart.clear();
       var option;
       var data = degree_data.degree;
       var option = {
@@ -204,6 +232,11 @@ export default {
           calculable: true,
           inRange: {
             color: ["#f2c31a", "#24b7f2"],
+          },
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {},
           },
         },
         tooltip: {
@@ -245,12 +278,257 @@ export default {
           {
             name: "price-area",
             type: "scatter",
-            symbolSize: 5,
+            symbolSize: 3,
             data: data,
           },
         ],
       };
       myChart.setOption(option);
+
+      option && myChart.setOption(option);
+    },
+    draw_evolution(evolution_data) {
+      console.log(evolution_data);
+      var chartDom = document.getElementById("evolution");
+      var myChart = this.$echarts.init(chartDom);
+      var option;
+      myChart.clear();
+      option = {
+        title: {
+          text: "Number of Packages in Different Layers",
+        },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: {
+            type: "cross",
+            label: {
+              backgroundColor: "#6a7985",
+            },
+          },
+        },
+        legend: {
+          data: evolution_data.legend,
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {},
+          },
+        },
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "3%",
+          containLabel: true,
+        },
+        xAxis: [
+          {
+            type: "category",
+            boundaryGap: false,
+            name: "Date",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            nameLocation: "center",
+            nameGap: 30,
+            data: evolution_data.date,
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "12",
+                itemSize: "",
+              },
+            },
+          },
+        ],
+        yAxis: [
+          {
+            type: "value",
+            name: "Number",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "14",
+                itemSize: "",
+              },
+            },
+          },
+        ],
+        series: evolution_data.series,
+      };
+
+      option && myChart.setOption(option);
+    },
+    draw_b_d(between_degree) {
+      var chartDom = document.getElementById("b_d");
+      var myChart = this.$echarts.init(chartDom);
+      var option;
+      myChart.clear();
+      option = {
+        title: {
+          text: "Degree Centrality and Betweenness Centrality of the Packages",
+        },
+        tooltip: {
+          trigger: "item",
+          axisPointer: {
+            type: "cross",
+          },
+          formatter: function (datas) {
+            return (
+              "Package: " +
+              datas.data[2] +
+              // "<br/>Layer: " +
+              // datas.data[2] +
+              "<br/>Betweenness Centrality: " +
+              datas.data[0] +
+              "<br/>Degree Centrality: " +
+              datas.data[1]
+            );
+          },
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {},
+          },
+        },
+        xAxis: [
+          {
+            type: "log",
+            name: " Betweenness Centrality",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            nameLocation: "center",
+            nameGap: 30,
+            logBase: 10,
+            min: 1,
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "14",
+                itemSize: "",
+              },
+            },
+
+            // minInterval: 1,
+          },
+        ],
+        yAxis: [
+          {
+            type: "log",
+            name: "Degree Centrality",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            logBase: 10,
+            min: 1,
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "14",
+                itemSize: "",
+              },
+            },
+          },
+        ],
+        series: [
+          {
+            symbolSize: 5,
+            data: between_degree,
+            type: "scatter",
+            itemStyle: {
+              color: "#24b7f2",
+            },
+          },
+        ],
+      };
+
+      option && myChart.setOption(option);
+    },
+    draw_in_pr(indegree_pr) {
+      var chartDom = document.getElementById("in_pr");
+      var myChart = this.$echarts.init(chartDom);
+      var option;
+      myChart.clear();
+      option = {
+        title: {
+          text: "In-Degree and Page-Rank of the Packages",
+        },
+        tooltip: {
+          trigger: "item",
+          axisPointer: {
+            type: "cross",
+          },
+          formatter: function (datas) {
+            return (
+              "Package: " +
+              datas.data[2] +
+              // "<br/>Layer: " +
+              // datas.data[2] +
+              "<br/>In-Degree: " +
+              datas.data[0] +
+              "<br/>Page Rank: " +
+              datas.data[1]
+            );
+          },
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {},
+          },
+        },
+        xAxis: [
+          {
+            type: "log",
+            name: " In-Degree",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            nameLocation: "center",
+            nameGap: 30,
+            logBase: 10,
+            min: 1,
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "14",
+                itemSize: "",
+              },
+            },
+            // minInterval: 1,
+          },
+        ],
+        yAxis: [
+          {
+            type: "log",
+            name: "Page Rank",
+            nameTextStyle: {
+              fontSize: 13,
+            },
+            logBase: 10,
+            min: 0.00001,
+            axisLabel: {
+              textStyle: {
+                color: "#000",
+                fontSize: "14",
+                itemSize: "",
+              },
+            },
+          },
+        ],
+        series: [
+          {
+            symbolSize: 5,
+            data: indegree_pr,
+            type: "scatter",
+            itemStyle: {
+              color: "#f2c31a",
+            },
+          },
+        ],
+      };
 
       option && myChart.setOption(option);
     },
@@ -284,5 +562,4 @@ export default {
 .el-carousel /deep/ .el-carousel__container {
   height: 100%;
 }
-
 </style>
