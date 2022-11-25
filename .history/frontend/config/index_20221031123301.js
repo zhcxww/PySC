@@ -54,17 +54,17 @@ module.exports = {
   },
 
   build: {
-    // proxyTable: {
-    //   '/api': {
-    //     target: 'http://localhost:1120',//要访问的后端接口
-    //     changeOrigin: true,
-    //     pathRewrite: {
-    //     '^/api': '/'
-    //     //这里的配置是正则表达式，以/api开头的将会被用用‘/api'替换掉，假如后台文档的接口是 /api/list/xxx
-    //     //前端api接口写：axios.get('/api/list/xxx') ， 被处理之后实际访问的是：http://news.baidu.com/api/list/xxx
-    //     }
-    //     }
-    // },
+    proxyTable: {
+      '/api': {
+        target: 'http://localhost:1120',//要访问的后端接口
+        changeOrigin: true,
+        pathRewrite: {
+        '^/api': '/'
+        //这里的配置是正则表达式，以/api开头的将会被用用‘/api'替换掉，假如后台文档的接口是 /api/list/xxx
+        //前端api接口写：axios.get('/api/list/xxx') ， 被处理之后实际访问的是：http://news.baidu.com/api/list/xxx
+        }
+        }
+    },
     // Template for index.html
     index: path.resolve(__dirname, '../dist/index.html'),
 
